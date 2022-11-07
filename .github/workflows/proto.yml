@@ -1,0 +1,41 @@
+name: Proto
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  build:
+    name: Build and Lint
+    runs-on: ubuntu-latest
+    steps:
+
+      # Setup
+      - name: Setup Buf
+        uses: bufbuild/buf-setup-action@v1
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Fetch previous commit
+        run: git fetch origin master --depth 2
+
+      # Linting
+      - name: Lint
+        run: buf lint
+      - name: Check Breaking Changes
+        run: |
+          if [ ${{ github.ref }} = 'refs/heads/master' ]; then
+              AGAINST='.git#branch=origin/master,ref=HEAD~1'
+          else
+              AGAINST='.git#branch=origin/master'
+          fi
+
+          buf breaking --against "$AGAINST"
+
+      # Release
+      - name: Release
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+        if: github.ref == 'refs/heads/master'
+        run: buf push

@@ -2,7 +2,7 @@ version: v1
 name: buf.build/thread/protoc-gen-bq-schema
 build:
   excludes:
-    - examples
+    - examples/
 breaking:
   use:
   - FILE
